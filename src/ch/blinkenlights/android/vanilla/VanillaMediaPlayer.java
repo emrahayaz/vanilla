@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.audiofx.AudioEffect;
 import java.io.IOException;
+import android.util.Log;
 
 public class VanillaMediaPlayer extends MediaPlayer {
 
@@ -95,6 +96,7 @@ public class VanillaMediaPlayer extends MediaPlayer {
 		i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, this.getAudioSessionId());
 		i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mContext.getPackageName());
 		mContext.sendBroadcast(i);
+		Log.v("VanillaMusic", "opened audio session "+this.getAudioSessionId());
 	}
 
 	/**
@@ -105,6 +107,7 @@ public class VanillaMediaPlayer extends MediaPlayer {
 		i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, this.getAudioSessionId());
 		i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mContext.getPackageName());
 		mContext.sendBroadcast(i);
+		Log.v("VanillaMusic", "closed audio session "+this.getAudioSessionId());
 	}
 
 }

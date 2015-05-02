@@ -303,6 +303,7 @@ public final class PlaybackService extends Service
 	VanillaMediaPlayer mMediaPlayer;
 	VanillaMediaPlayer mPreparedMediaPlayer;
 	private boolean mMediaPlayerInitialized;
+	private boolean mMediaPlayerAudioFxActive;
 	private PowerManager.WakeLock mWakeLock;
 	private NotificationManager mNotificationManager;
 	private AudioManager mAudioManager;
@@ -406,8 +407,6 @@ public final class PlaybackService extends Service
 		mPreparedMediaPlayer = getNewMediaPlayer();
 		// We only have a single audio session
 		mPreparedMediaPlayer.setAudioSessionId(mMediaPlayer.getAudioSessionId());
-		// Broadcast our audio ID for the EQ
-		mPreparedMediaPlayer.openAudioFx();
 
 		mBastpUtil = new BastpUtil();
 		mReadahead = new ReadaheadThread();
@@ -564,7 +563,6 @@ public final class PlaybackService extends Service
 		}
 
 		if (mPreparedMediaPlayer != null) {
-			mPreparedMediaPlayer.closeAudioFx();
 			mPreparedMediaPlayer.release();
 			mPreparedMediaPlayer = null;
 		}
@@ -906,6 +904,12 @@ public final class PlaybackService extends Service
 
 		if ( ((toggled & FLAG_PLAYING) != 0) && mCurrentSong != null) { // user requested to start playback AND we have a song selected
 			if ((state & FLAG_PLAYING) != 0) {
+
+				if (mMediaPlayerAudioFxActive == false) {
+					mMediaPlayer.openAudioFx();
+					mMediaPlayerAudioFxActive = true;
+				}
+
 				if (mMediaPlayerInitialized)
 					mMediaPlayer.start();
 
@@ -1427,6 +1431,11 @@ public final class PlaybackService extends Service
 			broadcastChange(message.arg1, (Song)message.obj, message.getWhen());
 			break;
 		case RELEASE_WAKE_LOCK:
+			// fixme: should probably also be done in onDestroy: we could wrap this into a partialShutdownCleanup()
+			if (mMediaPlayerAudioFxActive) {
+				mMediaPlayer.closeAudioFx();
+				mMediaPlayerAudioFxActive = false;
+			}
 			if (mWakeLock != null && mWakeLock.isHeld())
 				mWakeLock.release();
 			break;
